@@ -1,0 +1,70 @@
+version: '3.8'
+services:
+  dev:
+    container_name: 'example_node_dev'
+    image: example-node-dev:1.0.0
+    build:
+      context: .
+      target: development
+      dockerfile: ./Dockerfile
+    command: npm run start:debug
+    networks:
+      - example-network
+    ports:
+      - 3000:3000
+      - 9229:9229
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+  prod:
+    container_name: 'example_node_prod'
+    image: example-node-prod:1.0.0
+    build:
+      context: .
+      target: production
+      dockerfile: ./Dockerfile
+    command: npm run start:prod
+    ports:
+      - 3000:3000
+      - 9229:9229
+    networks:
+      - example-network
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+  db:
+    container_name: 'example_database'
+    image: mysql:8.0
+    tty: true
+    restart: always
+    networks:
+      - example-network
+    environment:
+      MYSQL_DATABASE: 'example'
+      MYSQL_ROOT_PASSWORD: 'example'
+      MYSQL_USER: 'example'
+      MYSQL_PASSWORD: 'example'
+    ports:
+      - '3306:3306'
+  redis:
+    container_name: 'example_redis'
+    image: redis:latest
+    networks:
+      - example-network
+    ports:
+      - "6379:6379"
+  elasticsearch:
+    container_name: 'example_elastic'
+    restart: unless-stopped
+    image: 'elasticsearch:8.0.0'
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    networks:
+      - example-network
+    ports:
+      - '9200:9200'
+networks:
+  example-network:
